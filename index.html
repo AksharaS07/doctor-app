@@ -118,24 +118,27 @@ button {
     <input type="number" id="reminder" placeholder="Reminder (minutes before)">
     
     <button class="add-btn" onclick="addAppointment()">Add Appointment</button>
-  </div>
-
-  <div id="list"></div>
-
 </div>
+</div>
+
+const list = document.getElementById("list");
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+
 <script>
-let appointments = JSON.parse(localStorage.getItem("appointments")) || [];
 
-// Ensure all appointments have required fields
-appointments = appointments.map(app => ({
-  name: app.name || "",
-  date: app.date || "",
-  time: app.time || "",
-  reminder: app.reminder || 0,
-  notified: app.notified || false
-}));
+const firebaseConfig = {
+  apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
+  authDomain: "doctor-app-b5f5d.firebaseapp.com",
+  projectId: "doctor-app-b5f5d",
+  storageBucket: "doctor-app-b5f5d.firebasestorage.app",
+  messagingSenderId: "217908180939",
+  appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
+};
 
-localStorage.setItem("appointments", JSON.stringify(appointments));
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 let editIndex = -1;
 
@@ -169,63 +172,52 @@ if (selectedDateTime < now) {
 
   let appointment = { name, date, time, reminder, notified: false };
 
-  if (editIndex === -1) {
-    appointments.push(appointment);
-  } else {
-    appointments[editIndex] = appointment;
-    editIndex = -1;
-  }
+ db.collection("appointments").add({
+  name: name,
+  date: date,
+  time: time,
+  reminder: reminder,
+  notified: false,
+  createdAt: new Date()
+})
+.then(() => {
+  alert("Appointment Saved ✅");
 
-  localStorage.setItem("appointments", JSON.stringify(appointments));
-  // Clear input fields
-document.getElementById("name").value = "";
-document.getElementById("date").value = "";
-document.getElementById("time").value = "";
-document.getElementById("reminder").value = "";
-document.getElementById("formattedTime").innerText = "";
-document.getElementById("formattedDate").innerText = "";
-  displayAppointments();
+  // clear fields
+  document.getElementById("name").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("time").value = "";
+  document.getElementById("reminder").value = "";
+  document.getElementById("formattedTime").innerText = "";
+  document.getElementById("formattedDate").innerText = "";
+
+  loadAppointments(); // important
+});
 }
 
-function displayAppointments() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
+function loadAppointments() {
+  const list = document.getElementById("list");
 
-  // Sort appointments
-  appointments.sort((a, b) => {
-    return new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`);
-  });
+  db.collection("appointments")
+    .orderBy("date")
+    .onSnapshot((querySnapshot) => {
+      list.innerHTML = "";
 
-  let grouped = {};
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
 
-  appointments.forEach((app, index) => {
-    if (!grouped[app.date]) {
-      grouped[app.date] = [];
-    }
-    grouped[app.date].push({ ...app, index });
-  });
+        const item = document.createElement("div");
+        item.className = "card";
+        item.innerText =
+          data.name + " - " + data.date + " - " + data.time;
 
-  for (let date in grouped) {
-    // Date heading
-    list.innerHTML += `<div class="date-heading">📅 ${date}</div>`;
-
-    grouped[date].forEach(item => {
-      list.innerHTML += `
-        <div class="card">
-          <strong>${item.name}</strong><br>
-          Time: ${formatTime(item.time)}<br><br>
-          <button class="edit-btn" onclick="editAppointment(${item.index})">Edit</button>
-          <button class="delete-btn" onclick="deleteAppointment(${item.index})">Delete</button>
-        </div>
-      `;
+        list.appendChild(item);
+      });
     });
-  }
 }
-
-function deleteAppointment(index) {
+/*function deleteAppointment(index) {
   appointments.splice(index, 1);
-  localStorage.setItem("appointments", JSON.stringify(appointments));
-  displayAppointments();
+  loadAppointments();
 }
 
 function editAppointment(index) {
@@ -255,7 +247,7 @@ function checkReminders() {
     if (now >= reminderTime && now <= windowEnd) {
       alert(`Reminder: ${app.name} at ${app.time}`);
       appointments[index].notified = true;
-      localStorage.setItem("appointments", JSON.stringify(appointments));
+      
     }
   });
 }
@@ -278,10 +270,10 @@ function cleanOldAppointments() {
   // Save only if something changed
   if (before !== after) {
     console.log("Old appointments removed");
-    localStorage.setItem("appointments", JSON.stringify(appointments));
-    displayAppointments(); // refresh UI
+    
+    loadAppointments(); // refresh UI
   }
-}
+}*/
 
 function setMinDate() {
   let today = new Date().toISOString().split("T")[0];
@@ -332,9 +324,9 @@ setInterval(cleanOldAppointments, 60000);
 
 setMinDate();
 
-cleanOldAppointments();
+//cleanOldAppointments();
 // Load data on start
-displayAppointments();
+loadAppointments();
 </script>
 
 </body>
