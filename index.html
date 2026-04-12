@@ -115,13 +115,12 @@ button {
 <div style="color:#777; font-size:13px;">
   Format: HH:MM
 </div>
+<div id="list"></div>
     <input type="number" id="reminder" placeholder="Reminder (minutes before)">
     
     <button class="add-btn" onclick="addAppointment()">Add Appointment</button>
 </div>
 </div>
-
-const list = document.getElementById("list");
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
@@ -160,15 +159,6 @@ if (selectedDateTime < now) {
   alert("Cannot select past time!");
   return;
 }
-
-  let exists = appointments.some((app, index) => 
-    app.date === date && app.time === time && index !== editIndex
-  );
-
-  if (exists) {
-    alert("This time slot is already booked!");
-    return;
-  }
 
   let appointment = { name, date, time, reminder, notified: false };
 
@@ -319,8 +309,8 @@ function updateFormattedDate() {
 }
 
 // Run every minute
-setInterval(checkReminders, 1000);
-setInterval(cleanOldAppointments, 60000);
+//setInterval(checkReminders, 1000);
+//setInterval(cleanOldAppointments, 60000);
 
 setMinDate();
 
