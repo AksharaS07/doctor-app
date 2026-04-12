@@ -88,6 +88,7 @@ button {
 
 </style>
   <title>Doctor Appointments</title>
+
 </head>
 <body>
 
@@ -119,16 +120,16 @@ button {
     <input type="number" id="reminder" placeholder="Reminder (minutes before)">
     
     <button class="add-btn" onclick="addAppointment()">Add Appointment</button>
+    <button onclick="testFirebase()">Test Firebase</button>
 </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
+  apiKey: "AIzaSyAto1rStOr4A4QGRCT7aw0d_zh-BdRmA9MM",
   authDomain: "doctor-app-b5f5d.firebaseapp.com",
   projectId: "doctor-app-b5f5d",
   storageBucket: "doctor-app-b5f5d.firebasestorage.app",
@@ -136,9 +137,17 @@ const firebaseConfig = {
   appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
+// expose globally so your old functions can use it
+window.db = db;
+window.collection = collection;
+window.addDoc = addDoc;
+window.onSnapshot = onSnapshot;
+</script>
+
+<script>
 let editIndex = -1;
 
 function addAppointment() {
@@ -162,7 +171,7 @@ if (selectedDateTime < now) {
 
   let appointment = { name, date, time, reminder, notified: false };
 
- db.collection("appointments").add({
+addDoc(collection(db, "appointments"), {
   name: name,
   date: date,
   time: time,
@@ -172,7 +181,7 @@ if (selectedDateTime < now) {
 })
 .then(() => {
   alert("Appointment Saved ✅");
-
+  loadAppointments();
   // clear fields
   document.getElementById("name").value = "";
   document.getElementById("date").value = "";
@@ -180,31 +189,28 @@ if (selectedDateTime < now) {
   document.getElementById("reminder").value = "";
   document.getElementById("formattedTime").innerText = "";
   document.getElementById("formattedDate").innerText = "";
-
-  loadAppointments(); // important
-});
+})
+.catch(err => console.log(err));
 }
 
 function loadAppointments() {
   const list = document.getElementById("list");
 
-  db.collection("appointments")
-    .orderBy("date")
-    .onSnapshot((querySnapshot) => {
-      list.innerHTML = "";
+  onSnapshot(collection(db, "appointments"), (snapshot) => {
+    list.innerHTML = "";
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+    snapshot.forEach((doc) => {
+      const data = doc.data();
 
-        const item = document.createElement("div");
-        item.className = "card";
-        item.innerText =
-          data.name + " - " + data.date + " - " + data.time;
+      const item = document.createElement("div");
+      item.className = "card";
+      item.innerText = data.name + " - " + data.date + " - " + data.time;
 
-        list.appendChild(item);
-      });
+      list.appendChild(item);
     });
+  });
 }
+
 /*function deleteAppointment(index) {
   appointments.splice(index, 1);
   loadAppointments();
@@ -317,6 +323,14 @@ setMinDate();
 //cleanOldAppointments();
 // Load data on start
 loadAppointments();
+
+function testFirebase() {
+  db.collection("test").add({
+    time: new Date()
+  })
+  .then(() => alert("Firebase is working ✅"))
+  .catch(err => console.log(err));
+}
 </script>
 
 </body>
