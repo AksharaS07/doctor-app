@@ -2,187 +2,127 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4CAF50">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon1.png">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<meta name="theme-color" content="#4CAF50">
-
-<link rel="manifest" href="manifest.json">
-
-<link rel="icon" href="icon1.png">
-  <style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f8;
-  margin: 0;
-  padding: 10px;
-}
-
-h2 {
-  text-align: center;
-}
-
-.container {
-  max-width: 400px;
-  margin: auto;
-}
-
-.card {
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  margin-bottom: 12px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
-
-button {
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-.add-btn {
-  background-color: #4CAF50;
-  color: white;
-  width: 100%;
-  font-size: 16px;
-  margin-top: 10px;
-}
-
-.edit-btn {
-  background-color: #2196F3;
-  color: white;
-  margin-right: 5px;
-}
-
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.date-heading {
-  margin-top: 20px;
-  font-weight: bold;
-}
-
-.app-header {
-  background-color: #4CAF50;
-  color: white;
-  padding: 15px;
-  font-size: 20px;
-  text-align: center;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-
-</style>
   <title>Doctor Appointments</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .app-header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .add-btn {
+      background-color: #4CAF50;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    #list {
+      margin-top: 15px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="app-header">
-  🩺 Doctor Appointment
-</div>
+<div class="app-header">🩺 Doctor Appointment</div>
 
 <div class="container">
-
-  <h2>Doctor Appointments</h2>
 
   <div class="card">
     <input type="text" id="name" placeholder="Patient Name">
 
-    <label>📅 Appointment Date</label>
-<input type="date" id="date" onkeydown="return false" onchange="updateFormattedDate()">
+    <label>📅 Date</label>
+    <input type="date" id="date">
 
-<div id="formattedDate" style="margin-top:5px; color:#555;"></div>
+    <label>🕒 Time</label>
+    <input type="time" id="time">
 
-    <label>🕒 Appointment Time</label>
-<input type="time" id="time" onchange="updateFormattedTime()">
-
-<div id="formattedTime" style="margin-top:5px; color:#555;"></div>
-
-<div style="color:#777; font-size:13px;">
-  Format: HH:MM
-</div>
     <input type="number" id="reminder" placeholder="Reminder (minutes before)">
-    
+
     <button class="add-btn" onclick="addAppointment()">Add Appointment</button>
   </div>
 
   <div id="list"></div>
 
 </div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script>
 
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
   authDomain: "doctor-app-b5f5d.firebaseapp.com",
   projectId: "doctor-app-b5f5d",
   storageBucket: "doctor-app-b5f5d.firebasestorage.app",
   messagingSenderId: "217908180939",
-  appId: "1:217908180939:web:7645d7bddc2d59c868e84e"};
+  appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
+};
 
 firebase.initializeApp(firebaseConfig);
-
 const db = firebase.firestore();
 
-console.log("Firebase INIT DONE ✔");
-console.log("DB object:", db);
+console.log("Firebase connected ✔");
 
-function testFirebaseRead() {
-  db.collection("appointments")
-    .get()
-    .then(snapshot => {
-      console.log("Firebase data:");
-      snapshot.forEach(doc => {
-        console.log(doc.data());
-      });
-    });
-}
-
-let appointments = JSON.parse(localStorage.getItem("appointments")) || [];
-
-// Ensure all appointments have required fields
-appointments = appointments.map(app => ({
-  name: app.name || "",
-  date: app.date || "",
-  time: app.time || "",
-  reminder: app.reminder || 0,
-  notified: app.notified || false
-}));
-
-localStorage.setItem("appointments", JSON.stringify(appointments));
-
-let editIndex = -1;
-
+// ADD APPOINTMENT
 function addAppointment() {
-  console.log("Add button clicked ✔");
-
-  let name = document.getElementById("name").value;
-  let date = document.getElementById("date").value;
-  let time = document.getElementById("time").value;
-  let reminder = document.getElementById("reminder").value;
+  const name = document.getElementById("name").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const reminder = document.getElementById("reminder").value;
 
   if (!name || !date || !time) {
-    alert("Fill all fields");
-    return;
-  }
-
-  if (!db) {
-    console.log("DB is undefined ❌");
+    alert("Please fill all fields");
     return;
   }
 
@@ -193,35 +133,35 @@ function addAppointment() {
     reminder,
     createdAt: new Date()
   })
-  .then((docRef) => {
-    console.log("Saved in Firestore ✔ ID:", docRef.id);
-    alert("Saved ✔");
+  .then(() => {
+    alert("Appointment saved ✔");
 
     document.getElementById("name").value = "";
     document.getElementById("date").value = "";
     document.getElementById("time").value = "";
     document.getElementById("reminder").value = "";
-
-    displayAppointments();
   })
-  .catch((error) => {
-    console.error("SAVE ERROR ❌:", error);
+  .catch(err => {
+    console.error(err);
+    alert("Error saving appointment ❌");
   });
 }
+
+// REAL-TIME LISTENER (THIS FIXES REFRESH ISSUE)
 function renderAppointments() {
   const list = document.getElementById("list");
-  list.innerHTML = "";
 
   db.collection("appointments")
     .orderBy("createdAt", "desc")
-    .onSnapshot(snapshot => {
+    .onSnapshot((snapshot) => {
+
       list.innerHTML = "";
 
       snapshot.forEach(doc => {
         const data = doc.data();
 
         const div = document.createElement("div");
-        div.className = "appointment-item";
+        div.className = "card";
 
         div.innerHTML = `
           <b>${data.name}</b><br>
@@ -231,158 +171,13 @@ function renderAppointments() {
 
         list.appendChild(div);
       });
+
+    }, (error) => {
+      console.error("Firestore error:", error);
     });
 }
-function displayAppointments() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
 
-  // Sort appointments
-  appointments.sort((a, b) => {
-    return new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`);
-  });
-
-  let grouped = {};
-
-  appointments.forEach((app, index) => {
-    if (!grouped[app.date]) {
-      grouped[app.date] = [];
-    }
-    grouped[app.date].push({ ...app, index });
-  });
-
-  for (let date in grouped) {
-    // Date heading
-    list.innerHTML += `<div class="date-heading">📅 ${date}</div>`;
-
-    grouped[date].forEach(item => {
-      list.innerHTML += `
-        <div class="card">
-          <strong>${item.name}</strong><br>
-          Time: ${formatTime(item.time)}<br><br>
-          <button class="edit-btn" onclick="editAppointment(${item.index})">Edit</button>
-          <button class="delete-btn" onclick="deleteAppointment(${item.index})">Delete</button>
-        </div>
-      `;
-    });
-  }
-}
-
-function deleteAppointment(index) {
-  appointments.splice(index, 1);
-  localStorage.setItem("appointments", JSON.stringify(appointments));
-  displayAppointments();
-}
-
-function editAppointment(index) {
-  let app = appointments[index];
-
-  document.getElementById("name").value = app.name;
-  document.getElementById("date").value = app.date;
-  document.getElementById("time").value = app.time;
-  document.getElementById("reminder").value = app.reminder;
-
-  editIndex = index;
-}
-
-function checkReminders() {
-  let now = new Date();
-  console.log("Checking reminders...", new Date());
-
-  appointments.forEach((app, index) => {
-    if (app.notified) return;
-
-    let appointmentTime = new Date(`${app.date}T${app.time}`);
-    let reminderTime = new Date(appointmentTime.getTime() - app.reminder * 60000);
-
-    // 5 minute window (very safe)
-    let windowEnd = new Date(reminderTime.getTime() + 5 * 60000);
-
-    if (now >= reminderTime && now <= windowEnd) {
-      alert(`Reminder: ${app.name} at ${app.time}`);
-      appointments[index].notified = true;
-      localStorage.setItem("appointments", JSON.stringify(appointments));
-    }
-  });
-}
-function cleanOldAppointments() {
-  let now = new Date();
-
-  let before = appointments.length;
-
-  appointments = appointments.filter(app => {
-    let appointmentTime = new Date(`${app.date}T${app.time}`);
-
-    // Keep until 1 hour after appointment
-    let bufferTime = new Date(appointmentTime.getTime() + 1 * 60000);
-
-    return bufferTime >= now;
-  });
-
-  let after = appointments.length;
-
-  // Save only if something changed
-  if (before !== after) {
-    console.log("Old appointments removed");
-    localStorage.setItem("appointments", JSON.stringify(appointments));
-    displayAppointments(); // refresh UI
-  }
-}
-
-function setMinDate() {
-  let today = new Date().toISOString().split("T")[0];
-  document.getElementById("date").setAttribute("min", today);
-}
-
-function formatTime(time) {
-  let [hour, minute] = time.split(":");
-
-  hour = parseInt(hour);
-
-  let ampm = hour >= 12 ? "PM" : "AM";
-  hour = hour % 12;
-  hour = hour ? hour : 12; // 0 becomes 12
-
-  return `${hour}:${minute} ${ampm}`;
-}
-
-function updateFormattedTime() {
-  let time = document.getElementById("time").value;
-
-  if (!time) return;
-
-  document.getElementById("formattedTime").innerText =
-  "🕒 " + formatTime(time);
-}
-
-function updateFormattedDate() {
-  let date = document.getElementById("date").value;
-
-  if (!date) return;
-
-  let d = new Date(date);
-
-  let formatted = d.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
-
-  document.getElementById("formattedDate").innerText =
-    "📅 " + formatted;
-}
-
-// Run every minute
-setInterval(checkReminders, 1000);
-setInterval(cleanOldAppointments, 60000);
-
-setMinDate();
-
-cleanOldAppointments();
-// Load data on start
-displayAppointments();
-
-testFirebaseRead();
+// INIT APP
 renderAppointments();
 
 </script>
