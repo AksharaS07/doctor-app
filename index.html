@@ -1,74 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4CAF50">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon1.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Appointments</title>
+<link rel="icon" href="icon1.png">
 
-  <title>Doctor Appointments</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
-      margin: 0;
-      padding: 10px;
-    }
-
-    .app-header {
-      background-color: #4CAF50;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      text-align: center;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: auto;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      margin-bottom: 12px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .add-btn {
-      background-color: #4CAF50;
-      color: white;
-      width: 100%;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    #list {
-      margin-top: 15px;
-    }
-  </style>
+<style>
+body { font-family: Arial; background:#f4f6f8; padding:10px; }
+.app-header { background:#4CAF50; color:white; padding:15px; text-align:center; border-radius:10px; }
+.container { max-width:400px; margin:auto; }
+.card { background:white; padding:15px; border-radius:12px; margin-bottom:12px; }
+input { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:1px solid #ccc; }
+.add-btn { background:#4CAF50; color:white; width:100%; padding:12px; border:none; border-radius:8px; }
+.date-heading { font-weight:bold; margin-top:15px; }
+.preview { font-size:13px; color:#555; }
+</style>
 </head>
 
 <body>
@@ -77,21 +25,23 @@
 
 <div class="container">
 
-  <div class="card">
-    <input type="text" id="name" placeholder="Patient Name">
+<div class="card">
+<input type="text" id="name" placeholder="Patient Name">
 
-    <label>📅 Date</label>
-    <input type="date" id="date">
+<label>📅 Date</label>
+<input type="date" id="date" onchange="updateFormattedDate()">
+<div id="formattedDate" class="preview"></div>
 
-    <label>🕒 Time</label>
-    <input type="time" id="time">
+<label>🕒 Time</label>
+<input type="time" id="time" onchange="updateFormattedTime()">
+<div id="formattedTime" class="preview"></div>
 
-    <input type="number" id="reminder" placeholder="Reminder (minutes before)">
+<input type="number" id="reminder" placeholder="Reminder (minutes before)">
 
-    <button class="add-btn" onclick="addAppointment()">Add Appointment</button>
-  </div>
+<button class="add-btn" onclick="addAppointment()">Add Appointment</button>
+</div>
 
-  <div id="list"></div>
+<div id="list"></div>
 
 </div>
 
@@ -103,82 +53,198 @@
 const firebaseConfig = {
   apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
   authDomain: "doctor-app-b5f5d.firebaseapp.com",
-  projectId: "doctor-app-b5f5d",
-  storageBucket: "doctor-app-b5f5d.firebasestorage.app",
-  messagingSenderId: "217908180939",
-  appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
+  projectId: "doctor-app-b5f5d"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-console.log("Firebase connected ✔");
+// 🔔 Ask permission ONCE
+if ("Notification" in window) {
+  Notification.requestPermission();
+}
 
-// ADD APPOINTMENT
-function addAppointment() {
-  const name = document.getElementById("name").value;
-  const date = document.getElementById("date").value;
-  const time = document.getElementById("time").value;
-  const reminder = document.getElementById("reminder").value;
+// INPUTS
+const nameInput = document.getElementById("name");
+const dateInput = document.getElementById("date");
+const timeInput = document.getElementById("time");
+const reminderInput = document.getElementById("reminder");
+const formattedDateDiv = document.getElementById("formattedDate");
+const formattedTimeDiv = document.getElementById("formattedTime");
+
+let editId = null;
+
+// ADD / UPDATE
+async function addAppointment() {
+  let name = nameInput.value;
+  let date = dateInput.value;
+  let time = timeInput.value;
+  let reminder = parseInt(reminderInput.value || 0);
 
   if (!name || !date || !time) {
-    alert("Please fill all fields");
+    alert("Fill all fields");
     return;
   }
 
-  db.collection("appointments").add({
-    name,
-    date,
-    time,
-    reminder,
-    createdAt: new Date()
-  })
-  .then(() => {
-    alert("Appointment saved ✔");
+  let now = new Date();
+  let selected = new Date(`${date}T${time}`);
 
-    document.getElementById("name").value = "";
-    document.getElementById("date").value = "";
-    document.getElementById("time").value = "";
-    document.getElementById("reminder").value = "";
-  })
-  .catch(err => {
-    console.error(err);
-    alert("Error saving appointment ❌");
+  if (selected < now) {
+    alert("Cannot select past time");
+    return;
+  }
+
+  let snapshot = await db.collection("appointments")
+    .where("date","==",date)
+    .where("time","==",time)
+    .get();
+
+  if (!snapshot.empty && !editId) {
+    alert("Slot already booked ❌");
+    return;
+  }
+
+  if (editId) {
+    await db.collection("appointments").doc(editId).update({
+      name,date,time,reminder
+    });
+    editId = null;
+  } else {
+    await db.collection("appointments").add({
+      name,date,time,reminder,
+      createdAt:new Date(),
+      notified:false
+    });
+  }
+
+  nameInput.value="";
+  dateInput.value="";
+  timeInput.value="";
+  reminderInput.value="";
+  formattedDateDiv.innerText="";
+  formattedTimeDiv.innerText="";
+}
+
+// FORMAT
+function formatTime(time){
+  let [h,m]=time.split(":");
+  h=parseInt(h);
+  let ampm=h>=12?"PM":"AM";
+  h=h%12||12;
+  return `${h}:${m} ${ampm}`;
+}
+
+// PREVIEW
+function updateFormattedTime(){
+  if(!timeInput.value){ formattedTimeDiv.innerText=""; return;}
+  formattedTimeDiv.innerText="🕒 "+formatTime(timeInput.value);
+}
+
+function updateFormattedDate(){
+  if(!dateInput.value){ formattedDateDiv.innerText=""; return;}
+  let d=new Date(dateInput.value);
+  formattedDateDiv.innerText="📅 "+d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+}
+
+// DELETE
+function deleteAppointment(id){
+  db.collection("appointments").doc(id).delete();
+}
+
+// EDIT
+function editAppointment(id,name,date,time,reminder){
+  editId=id;
+  nameInput.value=name;
+  dateInput.value=date;
+  timeInput.value=time;
+  reminderInput.value=reminder;
+  updateFormattedDate();
+  updateFormattedTime();
+}
+
+// LIST
+function renderAppointments(){
+  const list=document.getElementById("list");
+
+  db.collection("appointments")
+  .orderBy("createdAt","desc")
+  .onSnapshot(snapshot=>{
+
+    list.innerHTML="";
+    let grouped={};
+
+    snapshot.forEach(doc=>{
+      let data=doc.data();
+      if(!grouped[data.date]) grouped[data.date]=[];
+      grouped[data.date].push({...data,id:doc.id});
+    });
+
+    Object.keys(grouped).sort().forEach(date=>{
+
+      let d=new Date(date);
+      let formattedDate=d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+
+      list.innerHTML+=`<div class="date-heading">📅 ${formattedDate}</div>`;
+
+      grouped[date]
+      .sort((a,b)=>new Date(`${a.date}T${a.time}`)-new Date(`${b.date}T${b.time}`))
+      .forEach(item=>{
+        list.innerHTML+=`
+        <div class="card">
+          <strong>${item.name}</strong><br>
+          Time: ${formatTime(item.time)}<br>
+          ⏰ Reminder: ${item.reminder} min<br><br>
+
+          <button onclick="editAppointment('${item.id}','${item.name}','${item.date}','${item.time}','${item.reminder}')">Edit</button>
+          <button onclick="deleteAppointment('${item.id}')">Delete</button>
+        </div>`;
+      });
+    });
   });
 }
 
-// REAL-TIME LISTENER (THIS FIXES REFRESH ISSUE)
-function renderAppointments() {
-  const list = document.getElementById("list");
+// 🔔 FIXED REMINDER LOGIC
+function checkReminders(){
+  let now=new Date();
 
-  db.collection("appointments")
-    .orderBy("createdAt", "desc")
-    .onSnapshot((snapshot) => {
+  db.collection("appointments").get().then(snapshot=>{
+    snapshot.forEach(doc=>{
+      let data=doc.data();
 
-      list.innerHTML = "";
+      let appointmentTime=new Date(`${data.date}T${data.time}`);
+      let reminderTime=new Date(appointmentTime - data.reminder*60000);
 
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      let diff=now-reminderTime;
 
-        const div = document.createElement("div");
-        div.className = "card";
+      // 🔥 1 minute window (reliable)
+      if(diff>0 && diff<60000 && !data.notified){
 
-        div.innerHTML = `
-          <b>${data.name}</b><br>
-          📅 ${data.date} | 🕒 ${data.time}<br>
-          ⏰ Reminder: ${data.reminder || 0} min
-        `;
+        // Browser notification
+        if(Notification.permission==="granted"){
+          new Notification("Appointment Reminder",{
+            body:`${data.name} at ${formatTime(data.time)}`,
+            icon:"icon1.png"
+          });
+        }
 
-        list.appendChild(div);
-      });
+        // Backup alert (guaranteed)
+        alert(`Reminder: ${data.name} at ${formatTime(data.time)}`);
 
-    }, (error) => {
-      console.error("Firestore error:", error);
+        db.collection("appointments").doc(doc.id).update({notified:true});
+      }
     });
+  });
 }
 
-// INIT APP
+// INIT
+function setMinDate(){
+  let today=new Date().toISOString().split("T")[0];
+  dateInput.setAttribute("min",today);
+}
+
 renderAppointments();
+setInterval(checkReminders,30000); // every 30 sec
+setMinDate();
 
 </script>
 
