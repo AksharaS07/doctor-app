@@ -88,6 +88,12 @@ async function addAppointment() {
 
   let now = new Date();
   let selected = new Date(`${date}T${time}`);
+  let reminderTime = new Date(selected.getTime() - reminder * 60000);
+
+if (reminderTime < now) {
+  alert("Reminder time already passed ❌");
+  return;
+}
 
   if (selected < now) {
     alert("Cannot select past time");
@@ -236,6 +242,26 @@ function checkReminders(){
   });
 }
 
+function cleanOldAppointments() {
+  let now = new Date();
+
+  db.collection("appointments").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      let data = doc.data();
+
+      let appointmentTime = new Date(`${data.date}T${data.time}`);
+
+      // 🧠 Add 5 minute buffer (important)
+      let bufferTime = new Date(appointmentTime.getTime() + 5 * 60000);
+
+      if (bufferTime < now) {
+        db.collection("appointments").doc(doc.id).delete();
+      }
+    });
+  });
+}
+
+
 // INIT
 function setMinDate(){
   let today=new Date().toISOString().split("T")[0];
@@ -243,8 +269,20 @@ function setMinDate(){
 }
 
 renderAppointments();
+cleanOldAppointments();
 setInterval(checkReminders,30000); // every 30 sec
+setInterval(cleanOldAppointments,60000); // every 1 min
 setMinDate();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('firebase-messaging-sw.js')
+    .then(function(registration) {
+      console.log('Service Worker registered ✔', registration);
+    })
+    .catch(function(error) {
+      console.log('Service Worker failed ❌', error);
+    });
+}
 
 </script>
 
