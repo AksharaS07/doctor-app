@@ -333,7 +333,7 @@ if (firebase.messaging.isSupported()) {
           serviceWorkerRegistration: registration
         }).then(token => {
           console.log("🔥 DEVICE TOKEN:", token);
-          alert("SUCCESS! The phone token was generated!"); // A victory alert!
+          console.log("SUCCESS! The phone token was generated!"); // A victory alert!
           db.collection("deviceTokens").doc(token).set({ createdAt: new Date() });
         }).catch(err => {
           alert("Token failed: " + err.message);
