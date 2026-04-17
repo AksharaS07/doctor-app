@@ -317,11 +317,13 @@ if (firebase.messaging.isSupported()) {
     if (permission === "granted") {
       messaging.getToken({
         vapidKey: "BNd1NqL3KsFNQBv-_ln_jONWTQgm_6m-ItQh01FwstDYBLTLc7EMaBf_Tk8ROa7pzak9AUgMimA3ZlkyjEGI2CE"
+      // ... getToken code ...
       }).then(token => {
         console.log("🔥 DEVICE TOKEN:", token);
         db.collection("deviceTokens").doc(token).set({ createdAt: new Date() });
       }).catch(err => {
         console.log("Token error:", err);
+        alert("Token failed: " + err.message); // ADD THIS LINE
       });
     }
   });
