@@ -1,51 +1,290 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Doctor Appointments</title>
-<link rel="icon" href="icon1.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Doctor Appointments</title>
+  <link rel="icon" href="icon1.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <style>
+    /* 🌟 PREMIUM CLINICAL UI 🌟 */
+    :root {
+      --primary: #2563eb;       
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;            
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --radius: 16px;
+    }
 
-<style>
-body { font-family: Arial; background:#f4f6f8; padding:10px; }
-.app-header { background:#4CAF50; color:white; padding:15px; text-align:center; border-radius:10px; }
-.container { max-width:400px; margin:auto; }
-.card { background:white; padding:15px; border-radius:12px; margin-bottom:12px; }
-input { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:1px solid #ccc; }
-.add-btn { background:#4CAF50; color:white; width:100%; padding:12px; border:none; border-radius:8px; }
-.date-heading { font-weight:bold; margin-top:15px; }
-.preview { font-size:13px; color:#555; }
-</style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 20px 15px;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 450px; 
+    }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .app-header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .app-header i { font-size: 28px; }
+
+    /* Input Card */
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .input-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      font-size: 16px; /* Prevents mobile browser zooming */
+      background-color: var(--bg);
+      transition: all 0.3s ease;
+      outline: none;
+      color: var(--text-main);
+    }
+
+    input::placeholder { color: #94a3b8; }
+
+    input:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .preview {
+      font-size: 13px;
+      color: var(--primary);
+      margin-top: 6px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Buttons */
+    .add-btn {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .add-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Appointment List Styles */
+    .date-heading {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 24px 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .date-heading::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .appointment-card {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+    }
+
+    .appointment-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .patient-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .appointment-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .edit-btn { background: #f1f5f9; color: var(--text-main); }
+    .edit-btn:hover { background: #e2e8f0; }
+
+    .delete-btn { background: #fef2f2; color: var(--danger); }
+    .delete-btn:hover { background: #fee2e2; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state i {
+      font-size: 48px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="app-header">🩺 Doctor Appointment</div>
+<div class="app-container">
+  <div class="app-header">
+    <i class="ph-fill ph-stethoscope"></i>
+    <h1>Clinic Appointments</h1>
+  </div>
 
-<div class="container">
+  <div class="card">
+    <div class="input-group">
+      <label>Patient Name</label>
+      <input type="text" id="name" placeholder="Enter full name">
+    </div>
 
-<div class="card">
-<input type="text" id="name" placeholder="Patient Name">
+    <div class="input-group">
+      <label>Date</label>
+      <input type="date" id="date" onchange="updateFormattedDate()">
+      <div id="formattedDate" class="preview"></div>
+    </div>
 
-<label>📅 Date</label>
-<input type="date" id="date" onchange="updateFormattedDate()">
-<div id="formattedDate" class="preview"></div>
+    <div class="input-group">
+      <label>Time</label>
+      <input type="time" id="time" onchange="updateFormattedTime()">
+      <div id="formattedTime" class="preview"></div>
+    </div>
 
-<label>🕒 Time</label>
-<input type="time" id="time" onchange="updateFormattedTime()">
-<div id="formattedTime" class="preview"></div>
+    <div class="input-group">
+      <label>Notification Reminder</label>
+      <input type="number" id="reminder" placeholder="Minutes before appointment (e.g. 15)">
+    </div>
 
-<input type="number" id="reminder" placeholder="Reminder (minutes before)">
+    <button class="add-btn" onclick="addAppointment()">
+      <i class="ph ph-plus-circle" style="font-size: 20px;"></i> 
+      Save Appointment
+    </button>
+  </div>
 
-<button class="add-btn" onclick="addAppointment()">Add Appointment</button>
+  <div id="list"></div>
 </div>
 
-<div id="list"></div>
-
-</div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
@@ -78,12 +317,7 @@ if (firebase.messaging.isSupported()) {
         vapidKey: "BNd1NqL3KsFNQBv-_ln_jONWTQgm_6m-ItQh01FwstDYBLTLc7EMaBf_Tk8ROa7pzak9AUgMimA3ZlkyjEGI2CE"
       }).then(token => {
         console.log("🔥 DEVICE TOKEN:", token);
-
-        // store token in Firestore (IMPORTANT)
-        db.collection("deviceTokens").doc(token).set({
-          createdAt: new Date()
-        });
-
+        db.collection("deviceTokens").doc(token).set({ createdAt: new Date() });
       }).catch(err => {
         console.log("Token error:", err);
       });
@@ -94,16 +328,12 @@ if (firebase.messaging.isSupported()) {
 // 🔔 FOREGROUND NOTIFICATION HANDLER
 if (messaging) {
   messaging.onMessage((payload) => {
-    console.log("Foreground message received:", payload);
-    
-    // Force a local notification if the app is actively open
     if (Notification.permission === "granted") {
       new Notification(payload.notification.title, {
         body: payload.notification.body,
         icon: "icon1.png"
       });
     } else {
-      // Fallback if notifications are blocked but they are looking at the screen
       alert(`${payload.notification.title}\n${payload.notification.body}`);
     }
   });
@@ -135,53 +365,29 @@ async function addAppointment() {
   let selected = new Date(`${date}T${time}`);
   let reminderTime = new Date(selected.getTime() - reminder * 60000);
 
-if (reminderTime < now) {
-  alert("Reminder time already passed ❌");
-  return;
-}
-
-  if (selected < now) {
-    alert("Cannot select past time");
-    return;
-  }
+  if (reminderTime < now) { alert("Reminder time already passed ❌"); return; }
+  if (selected < now) { alert("Cannot select past time"); return; }
 
   let snapshot = await db.collection("appointments")
     .where("date","==",date)
     .where("time","==",time)
     .get();
 
-  if (!snapshot.empty && !editId) {
-    alert("Slot already booked ❌");
-    return;
-  }
+  if (!snapshot.empty && !editId) { alert("Slot already booked ❌"); return; }
 
   if (editId) {
     await db.collection("appointments").doc(editId).update({
-  name,
-  date,
-  time,
-  reminder,
-  notificationStatus: "pending"
-});
+      name, date, time, reminder, notificationStatus: "pending"
+    });
     editId = null;
   } else {
     await db.collection("appointments").add({
-  name,
-  date,
-  time,
-  reminder,
-  createdAt: new Date(),
-  notified: false,
-  notificationStatus: "pending"
-});
+      name, date, time, reminder, createdAt: new Date(), notified: false, notificationStatus: "pending"
+    });
   }
 
-  nameInput.value="";
-  dateInput.value="";
-  timeInput.value="";
-  reminderInput.value="";
-  formattedDateDiv.innerText="";
-  formattedTimeDiv.innerText="";
+  nameInput.value=""; dateInput.value=""; timeInput.value=""; reminderInput.value="";
+  formattedDateDiv.innerHTML=""; formattedTimeDiv.innerHTML="";
 }
 
 // FORMAT
@@ -195,67 +401,77 @@ function formatTime(time){
 
 // PREVIEW
 function updateFormattedTime(){
-  if(!timeInput.value){ formattedTimeDiv.innerText=""; return;}
-  formattedTimeDiv.innerText="🕒 "+formatTime(timeInput.value);
+  if(!timeInput.value){ formattedTimeDiv.innerHTML=""; return;}
+  formattedTimeDiv.innerHTML=`<i class="ph ph-clock"></i> ${formatTime(timeInput.value)}`;
 }
 
 function updateFormattedDate(){
-  if(!dateInput.value){ formattedDateDiv.innerText=""; return;}
+  if(!dateInput.value){ formattedDateDiv.innerHTML=""; return;}
   let d=new Date(dateInput.value);
-  formattedDateDiv.innerText="📅 "+d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+  formattedDateDiv.innerHTML=`<i class="ph ph-calendar"></i> ${d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}`;
 }
 
-// DELETE
-function deleteAppointment(id){
-  db.collection("appointments").doc(id).delete();
-}
-
-// EDIT
+// DELETE & EDIT
+function deleteAppointment(id){ db.collection("appointments").doc(id).delete(); }
 function editAppointment(id,name,date,time,reminder){
-  editId=id;
-  nameInput.value=name;
-  dateInput.value=date;
-  timeInput.value=time;
-  reminderInput.value=reminder;
-  updateFormattedDate();
-  updateFormattedTime();
+  editId=id; nameInput.value=name; dateInput.value=date; timeInput.value=time; reminderInput.value=reminder;
+  updateFormattedDate(); updateFormattedTime();
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // Scrolls up nicely when editing
 }
 
-// LIST
+// LIST WITH PREMIUM UI
 function renderAppointments(){
   const list=document.getElementById("list");
 
-  db.collection("appointments")
-  .orderBy("createdAt","desc")
-  .onSnapshot(snapshot=>{
-
+  db.collection("appointments").orderBy("createdAt","desc").onSnapshot(snapshot=>{
     list.innerHTML="";
     let grouped={};
+    let count = 0;
 
     snapshot.forEach(doc=>{
       let data=doc.data();
       if(!grouped[data.date]) grouped[data.date]=[];
       grouped[data.date].push({...data,id:doc.id});
+      count++;
     });
 
+    if (count === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <i class="ph ph-calendar-blank"></i>
+          <p>No upcoming appointments.</p>
+        </div>
+      `;
+      return;
+    }
+
     Object.keys(grouped).sort().forEach(date=>{
-
       let d=new Date(date);
-      let formattedDate=d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+      let formattedDate=d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric", weekday:"short"});
 
-      list.innerHTML+=`<div class="date-heading">📅 ${formattedDate}</div>`;
+      list.innerHTML+=`<div class="date-heading"><i class="ph-bold ph-calendar-check"></i> ${formattedDate}</div>`;
 
-      grouped[date]
-      .sort((a,b)=>new Date(`${a.date}T${a.time}`)-new Date(`${b.date}T${b.time}`))
-      .forEach(item=>{
+      grouped[date].sort((a,b)=>new Date(`${a.date}T${a.time}`)-new Date(`${b.date}T${b.time}`)).forEach(item=>{
         list.innerHTML+=`
-        <div class="card">
-          <strong>${item.name}</strong><br>
-          Time: ${formatTime(item.time)}<br>
-          ⏰ Reminder: ${item.reminder} min<br><br>
-
-          <button onclick="editAppointment('${item.id}','${item.name}','${item.date}','${item.time}','${item.reminder}')">Edit</button>
-          <button onclick="deleteAppointment('${item.id}')">Delete</button>
+        <div class="appointment-card">
+          <div class="patient-name">${item.name}</div>
+          <div class="appointment-details">
+            <div class="detail-row">
+              <i class="ph ph-clock" style="font-size: 16px;"></i> 
+              <span style="font-weight: 600; color: var(--text-main);">${formatTime(item.time)}</span>
+            </div>
+            <div class="detail-row">
+              <i class="ph ph-bell-ringing" style="font-size: 16px;"></i> Reminder set for ${item.reminder} mins prior
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn edit-btn" onclick="editAppointment('${item.id}','${item.name}','${item.date}','${item.time}','${item.reminder}')">
+              <i class="ph ph-pencil-simple"></i> Edit
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteAppointment('${item.id}')">
+              <i class="ph ph-trash"></i> Delete
+            </button>
+          </div>
         </div>`;
       });
     });
@@ -264,46 +480,32 @@ function renderAppointments(){
 
 function cleanOldAppointments() {
   let now = new Date();
-
   db.collection("appointments").get().then(snapshot => {
     snapshot.forEach(doc => {
       let data = doc.data();
-
       let appointmentTime = new Date(`${data.date}T${data.time}`);
-
-      // 🧠 Add 5 minute buffer (important)
       let bufferTime = new Date(appointmentTime.getTime() + 5 * 60000);
-
-      if (bufferTime < now) {
-        db.collection("appointments").doc(doc.id).delete();
-      }
+      if (bufferTime < now) { db.collection("appointments").doc(doc.id).delete(); }
     });
   });
 }
 
-
 // INIT
 function setMinDate(){
-  let today=new Date().toISOString().split("T")[0];
+  let today=new Date().toLocaleDateString('en-CA'); // More reliable local timezone fixing
   dateInput.setAttribute("min",today);
 }
 
 renderAppointments();
 cleanOldAppointments();
-setInterval(cleanOldAppointments,60000); // every 1 min
+setInterval(cleanOldAppointments,60000); 
 setMinDate();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('firebase-messaging-sw.js')
-    .then(function(registration) {
-      console.log('Service Worker registered ✔', registration);
-    })
-    .catch(function(error) {
-      console.log('Service Worker failed ❌', error);
-    });
+    .then(registration => console.log('Service Worker registered ✔'))
+    .catch(error => console.log('Service Worker failed ❌', error));
 }
-
 </script>
-
 </body>
 </html>
