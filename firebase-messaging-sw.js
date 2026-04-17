@@ -1,6 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js");
 importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js");
 
+// 1. Initialize the Firebase Engine
 firebase.initializeApp({
   apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
   authDomain: "doctor-app-b5f5d.firebaseapp.com",
@@ -10,16 +11,5 @@ firebase.initializeApp({
   appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
 });
 
+// 2. Start the listener (Firebase automatically handles 'notification' payloads!)
 const messaging = firebase.messaging();
-
-messaging.setBackgroundMessageHandler(function(payload) {
-  console.log("Background message received ", payload);
-
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: "icon1.png"
-  };
-
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
