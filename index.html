@@ -316,29 +316,37 @@ if (firebase.messaging.isSupported()) {
   Notification.requestPermission().then(permission => {
     if (permission === "granted") {
       
-      // 1. Explicitly tell the browser to look in the current folder (./)
-      navigator.serviceWorker.register('./firebase-messaging-sw.js')
+      // 1. Dynamically grab your exact GitHub Pages folder path
+      const currentPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+      const swPath = currentPath + 'firebase-messaging-sw.js';
+
+      // 2. Register the engine using the perfect path
+      navigator.serviceWorker.register(swPath)
       .then((registration) => {
-        
-        // 2. Hand this exact map directly to Firebase so it doesn't get lost
+        // 3. CRUCIAL: Force the browser to wait until the engine is fully awake
+        return navigator.serviceWorker.ready; 
+      })
+      .then((registration) => {
+        // 4. Now hand the fully awake engine to Firebase
         messaging.getToken({
           vapidKey: "BNd1NqL3KsFNQBv-_ln_jONWTQgm_6m-ItQh01FwstDYBLTLc7EMaBf_Tk8ROa7pzak9AUgMimA3ZlkyjEGI2CE",
           serviceWorkerRegistration: registration
         }).then(token => {
           console.log("🔥 DEVICE TOKEN:", token);
+          alert("SUCCESS! The phone token was generated!"); // A victory alert!
           db.collection("deviceTokens").doc(token).set({ createdAt: new Date() });
         }).catch(err => {
-          console.log("Token error:", err);
           alert("Token failed: " + err.message);
         });
 
       }).catch(err => {
-        alert("Service Worker Registration Failed: " + err);
+        alert("SW Registration Failed: " + err);
       });
 
     }
   });
 }
+
 // 🔔 FOREGROUND NOTIFICATION HANDLER
 if (messaging) {
   messaging.onMessage((payload) => {
