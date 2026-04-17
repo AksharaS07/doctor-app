@@ -48,20 +48,65 @@ input { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:1px so
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyAto1rStOr4AqGRCT7aw0d_zh-BdRmA9MM",
   authDomain: "doctor-app-b5f5d.firebaseapp.com",
-  projectId: "doctor-app-b5f5d"
+  projectId: "doctor-app-b5f5d",
+  storageBucket: "doctor-app-b5f5d.firebasestorage.app",
+  messagingSenderId: "217908180939",
+  appId: "1:217908180939:web:7645d7bddc2d59c868e84e"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // 🔔 Ask permission ONCE
 if ("Notification" in window) {
   Notification.requestPermission();
+}
+
+let messaging = null;
+
+if (firebase.messaging.isSupported()) {
+  messaging = firebase.messaging();
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      messaging.getToken({
+        vapidKey: "BNd1NqL3KsFNQBv-_ln_jONWTQgm_6m-ItQh01FwstDYBLTLc7EMaBf_Tk8ROa7pzak9AUgMimA3ZlkyjEGI2CE"
+      }).then(token => {
+        console.log("🔥 DEVICE TOKEN:", token);
+
+        // store token in Firestore (IMPORTANT)
+        db.collection("deviceTokens").doc(token).set({
+          createdAt: new Date()
+        });
+
+      }).catch(err => {
+        console.log("Token error:", err);
+      });
+    }
+  });
+}
+
+// 🔔 FOREGROUND NOTIFICATION HANDLER
+if (messaging) {
+  messaging.onMessage((payload) => {
+    console.log("Foreground message received:", payload);
+    
+    // Force a local notification if the app is actively open
+    if (Notification.permission === "granted") {
+      new Notification(payload.notification.title, {
+        body: payload.notification.body,
+        icon: "icon1.png"
+      });
+    } else {
+      // Fallback if notifications are blocked but they are looking at the screen
+      alert(`${payload.notification.title}\n${payload.notification.body}`);
+    }
+  });
 }
 
 // INPUTS
@@ -112,15 +157,23 @@ if (reminderTime < now) {
 
   if (editId) {
     await db.collection("appointments").doc(editId).update({
-      name,date,time,reminder
-    });
+  name,
+  date,
+  time,
+  reminder,
+  notificationStatus: "pending"
+});
     editId = null;
   } else {
     await db.collection("appointments").add({
-      name,date,time,reminder,
-      createdAt:new Date(),
-      notified:false
-    });
+  name,
+  date,
+  time,
+  reminder,
+  createdAt: new Date(),
+  notified: false,
+  notificationStatus: "pending"
+});
   }
 
   nameInput.value="";
@@ -209,39 +262,6 @@ function renderAppointments(){
   });
 }
 
-// 🔔 FIXED REMINDER LOGIC
-function checkReminders(){
-  let now=new Date();
-
-  db.collection("appointments").get().then(snapshot=>{
-    snapshot.forEach(doc=>{
-      let data=doc.data();
-
-      let appointmentTime=new Date(`${data.date}T${data.time}`);
-      let reminderTime=new Date(appointmentTime - data.reminder*60000);
-
-      let diff=now-reminderTime;
-
-      // 🔥 1 minute window (reliable)
-      if(diff>0 && diff<60000 && !data.notified){
-
-        // Browser notification
-        if(Notification.permission==="granted"){
-          new Notification("Appointment Reminder",{
-            body:`${data.name} at ${formatTime(data.time)}`,
-            icon:"icon1.png"
-          });
-        }
-
-        // Backup alert (guaranteed)
-        alert(`Reminder: ${data.name} at ${formatTime(data.time)}`);
-
-        db.collection("appointments").doc(doc.id).update({notified:true});
-      }
-    });
-  });
-}
-
 function cleanOldAppointments() {
   let now = new Date();
 
@@ -270,7 +290,6 @@ function setMinDate(){
 
 renderAppointments();
 cleanOldAppointments();
-setInterval(checkReminders,30000); // every 30 sec
 setInterval(cleanOldAppointments,60000); // every 1 min
 setMinDate();
 
