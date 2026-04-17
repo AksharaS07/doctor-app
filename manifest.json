@@ -1,11 +1,10 @@
 {
-  "name": "Doctor Appointment App",
-  "short_name": "Doctor",
-  "start_url": ".",
+  "name": "Clinic Appointments",
+  "short_name": "Clinic",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4CAF50",
-  "scope": ".",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
   "icons": [
     {
       "src": "icon1.png",
